@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}User Dashboard - Event Management Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1>User Dashboard</h1>
+    
+    <div class="dashboard-section">
+        <h2>My Upcoming Events</h2>
+        {% if upcoming_registrations %}
+            <div class="events-grid">
+                {% for registration in upcoming_registrations %}
+                    {% set event = registration.event %}
+                    <div class="event-card">
+                        <h3><a href="{{ url_for('events.view_event', event_id=event.id) }}">{{ event.title }}</a></h3>
+                        <p class="event-description">{{ event.description[:100] }}...</p>
+                        <div class="event-details">
+                            <p><strong>Date:</strong> {{ event.event_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <p><strong>Location:</strong> {{ event.location }}</p>
+                            <p><strong>Registered:</strong> {{ registration.registered_at.strftime('%Y-%m-%d') }}</p>
+                        </div>
+                        <div class="event-actions">
+                            <a href="{{ url_for('events.view_event', event_id=event.id) }}" class="btn btn-secondary">View Details</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>You haven't registered for any upcoming events yet.</p>
+        {% endif %}
+    </div>
+    
+    <div class="dashboard-section">
+        <h2>Browse All Events</h2>
+        {% if all_events %}
+            <div class="events-grid">
+                {% for event in all_events %}
+                    <div class="event-card">
+                        <h3><a href="{{ url_for('events.view_event', event_id=event.id) }}">{{ event.title }}</a></h3>
+                        <p class="event-description">{{ event.description[:100] }}...</p>
+                        <div class="event-details">
+                            <p><strong>Date:</strong> {{ event.event_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <p><strong>Location:</strong> {{ event.location }}</p>
+                            <p><strong>Registrations:</strong> {{ event.registration_count }}{% if event.max_registrations %} / {{ event.max_registrations }}{% endif %}</p>
+                        </div>
+                        <div class="event-actions">
+                            <a href="{{ url_for('events.view_event', event_id=event.id) }}" class="btn btn-secondary">
+                                {% if event.id in registered_event_ids %}
+                                    View Registration
+                                {% else %}
+                                    View Details
+                                {% endif %}
+                            </a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No events available at the moment.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

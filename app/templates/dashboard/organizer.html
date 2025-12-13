@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Organizer Dashboard - Event Management Dashboard{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h1>Organizer Dashboard</h1>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total Events</h3>
+            <p class="stat-number">{{ total_events }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Registrations</h3>
+            <p class="stat-number">{{ total_registrations }}</p>
+        </div>
+    </div>
+    
+    <div class="dashboard-section">
+        <div class="section-header">
+            <h2>Upcoming Events</h2>
+            <a href="{{ url_for('events.create_event') }}" class="btn btn-primary">Create New Event</a>
+        </div>
+        
+        {% if upcoming_events %}
+            <div class="events-grid">
+                {% for event in upcoming_events %}
+                    <div class="event-card">
+                        <h3><a href="{{ url_for('events.view_event', event_id=event.id) }}">{{ event.title }}</a></h3>
+                        <p class="event-description">{{ event.description[:100] }}...</p>
+                        <div class="event-details">
+                            <p><strong>Date:</strong> {{ event.event_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                            <p><strong>Location:</strong> {{ event.location }}</p>
+                            <p><strong>Registrations:</strong> {{ event.registration_count }}{% if event.max_registrations %} / {{ event.max_registrations }}{% endif %}</p>
+                        </div>
+                        <div class="event-actions">
+                            <a href="{{ url_for('events.view_event', event_id=event.id) }}" class="btn btn-secondary">View</a>
+                            <a href="{{ url_for('events.edit_event', event_id=event.id) }}" class="btn btn-secondary">Edit</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No upcoming events. <a href="{{ url_for('events.create_event') }}">Create your first event!</a></p>
+        {% endif %}
+    </div>
+    
+    <div class="dashboard-section">
+        <h2>All My Events</h2>
+        {% if events %}
+            <div class="events-list">
+                {% for event in events %}
+                    <div class="event-item">
+                        <div class="event-item-content">
+                            <h3><a href="{{ url_for('events.view_event', event_id=event.id) }}">{{ event.title }}</a></h3>
+                            <p>{{ event.description[:150] }}...</p>
+                            <div class="event-meta">
+                                <span>Date: {{ event.event_date.strftime('%Y-%m-%d %H:%M') }}</span>
+                                <span>Location: {{ event.location }}</span>
+                                <span>Registrations: {{ event.registration_count }}{% if event.max_registrations %} / {{ event.max_registrations }}{% endif %}</span>
+                            </div>
+                        </div>
+                        <div class="event-item-actions">
+                            <a href="{{ url_for('events.edit_event', event_id=event.id) }}" class="btn btn-sm btn-secondary">Edit</a>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No events created yet. <a href="{{ url_for('events.create_event') }}">Create your first event!</a></p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

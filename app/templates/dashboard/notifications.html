@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - Event Management Dashboard{% endblock %}
+
+{% block content %}
+<div class="notifications-container">
+    <h1>Notifications</h1>
+    
+    {% if notifications %}
+        <div class="notifications-list">
+            {% for notification in notifications %}
+                <div class="notification-item {% if not notification.is_read %}unread{% endif %}" 
+                     data-notification-id="{{ notification.id }}">
+                    <div class="notification-content">
+                        <h3>{{ notification.message }}</h3>
+                        <p class="notification-time">{{ notification.created_at.strftime('%Y-%m-%d %H:%M') }}</p>
+                        {% if notification.event %}
+                            <a href="{{ url_for('events.view_event', event_id=notification.event_id) }}" class="notification-link">View Event</a>
+                        {% endif %}
+                    </div>
+                    {% if not notification.is_read %}
+                        <button class="mark-read-btn" onclick="markAsRead({{ notification.id }})">Mark as Read</button>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No notifications.</p>
+    {% endif %}
+</div>
+
+<script>
+    function markAsRead(notificationId) {
+        fetch(`/dashboard/notifications/mark-read/${notificationId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const item = document.querySelector(`[data-notification-id="${notificationId}"]`);
+                if (item) {
+                    item.classList.remove('unread');
+                    const btn = item.querySelector('.mark-read-btn');
+                    if (btn) btn.remove();
+                }
+                // Update notification count
+                fetch('{{ url_for("dashboard.unread_notifications_count") }}')
+                    .then(response => response.json())
+                    .then(data => {
+                        const badge = document.getElementById('notification-count');
+                        if (data.count > 0) {
+                            badge.textContent = data.count;
+                            badge.style.display = 'inline-block';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    });
+            }
+        });
+    }
+</script>
+{% endblock %}
+
