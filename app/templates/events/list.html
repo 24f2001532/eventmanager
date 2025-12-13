@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}Events - Event Management Dashboard{% endblock %}
+
+{% block content %}
+<div class="events-container">
+    <div class="page-header">
+        <h1>All Events</h1>
+        {% if current_user.role == 'organizer' %}
+            <a href="{{ url_for('events.create_event') }}" class="btn btn-primary">Create Event</a>
+        {% endif %}
+    </div>
+    
+    {% if events %}
+        <div class="events-grid">
+            {% for event in events %}
+                <div class="event-card">
+                    <h3><a href="{{ url_for('events.view_event', event_id=event.id) }}">{{ event.title }}</a></h3>
+                    <p class="event-description">{{ event.description[:150] }}...</p>
+                    <div class="event-details">
+                        <p><strong>Date:</strong> {{ event.event_date.strftime('%Y-%m-%d %H:%M') }}</p>
+                        <p><strong>Location:</strong> {{ event.location }}</p>
+                        <p><strong>Organizer:</strong> {{ event.organizer.username }}</p>
+                        <p><strong>Registrations:</strong> 
+                            <span id="reg-count-{{ event.id }}">{{ event.registration_count }}</span>
+                            {% if event.max_registrations %} / {{ event.max_registrations }}{% endif %}
+                        </p>
+                        {% if not event.is_registration_open %}
+                            <p class="status-closed">Registration Closed</p>
+                        {% elif event.is_full %}
+                            <p class="status-full">Event Full</p>
+                        {% else %}
+                            <p class="status-open">Registration Open</p>
+                        {% endif %}
+                    </div>
+                    <div class="event-actions">
+                        <a href="{{ url_for('events.view_event', event_id=event.id) }}" class="btn btn-primary">View Details</a>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>No events found.</p>
+    {% endif %}
+</div>
+
+<script>
+    // Real-time updates for registration counts
+    setInterval(() => {
+        {% for event in events %}
+        fetch('{{ url_for("events.get_registration_count", event_id=event.id) }}')
+            .then(response => response.json())
+            .then(data => {
+                const countElement = document.getElementById('reg-count-{{ event.id }}');
+                if (countElement) {
+                    countElement.textContent = data.count;
+                }
+            });
+        {% endfor %}
+    }, 5000); // Update every 5 seconds
+</script>
+{% endblock %}
+
