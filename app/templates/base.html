@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Event Management Dashboard{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="{{ url_for('dashboard.dashboard') }}" class="nav-logo">Event Manager</a>
+            <div class="nav-menu">
+                {% if current_user.is_authenticated %}
+                    <a href="{{ url_for('dashboard.dashboard') }}" class="nav-link">Dashboard</a>
+                    <a href="{{ url_for('events.list_events') }}" class="nav-link">Events</a>
+                    {% if current_user.role == 'organizer' %}
+                        <a href="{{ url_for('events.create_event') }}" class="nav-link">Create Event</a>
+                    {% endif %}
+                    <a href="{{ url_for('dashboard.notifications') }}" class="nav-link">
+                        Notifications
+                        <span id="notification-count" class="notification-badge"></span>
+                    </a>
+                    <div class="nav-user">
+                        <span class="user-name">{{ current_user.username }}</span>
+                        <span class="user-role">({{ current_user.role }})</span>
+                        <a href="{{ url_for('auth.logout') }}" class="nav-link logout">Logout</a>
+                    </div>
+                {% else %}
+                    <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
+                    <a href="{{ url_for('auth.register') }}" class="nav-link">Register</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-messages">
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="footer">
+        <p>&copy; 2024 Event Management Dashboard. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // Load unread notification count
+        {% if current_user.is_authenticated %}
+        fetch('{{ url_for("dashboard.unread_notifications_count") }}')
+            .then(response => response.json())
+            .then(data => {
+                const badge = document.getElementById('notification-count');
+                if (data.count > 0) {
+                    badge.textContent = data.count;
+                    badge.style.display = 'inline-block';
+                } else {
+                    badge.style.display = 'none';
+                }
+            });
+        {% endif %}
+
+        // Auto-hide flash messages after 5 seconds
+        setTimeout(() => {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(msg => {
+                msg.style.opacity = '0';
+                setTimeout(() => msg.remove(), 300);
+            });
+        }, 5000);
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>
+
